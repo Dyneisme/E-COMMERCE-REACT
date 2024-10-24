@@ -18,14 +18,17 @@ app.use(cors({
   credentials: true
 }));
 
-//  Database Connection With MongoDB (removed deprecated options)
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => {
-    console.log('MongoDB Connected');
-  })
-  .catch(err => {
-    console.error('MongoDB connection error:', err.message);
-  });
+// Connect to MongoDB
+mongoose.connect(process.env.MONGODB_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+})
+.then(() => {
+  console.log(`MongoDB connected`);
+})
+.catch(err => {
+  console.error('MongoDB connection error:', err);
+});
 
 // API Creation
 app.get("/", (req, res) => {
