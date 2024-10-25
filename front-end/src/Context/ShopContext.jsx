@@ -1,8 +1,10 @@
 import React, { createContext, useEffect, useState } from 'react';
 
+
+
 export const ShopContext = createContext(null);
 
-const getDefaultCart = () => {
+const getDefaultCart = () =>{
   let cart = {};
   for (let index = 0; index < 300 + 1; index++) {
     cart[index] = 0;
@@ -15,24 +17,31 @@ const ShopContextProvider = (props) => {
   const [cartItems, setCartItems] = useState(getDefaultCart());
 
   useEffect(() => {
-    fetch('https://e-commerce-react-xp0f.onrender.com/allproducts') // Updated URL
+    fetch('https://e-commerce-react-xp0f.onrender.com/allproducts')
       .then((response) => response.json())
-      .then((data) => setAll_Product(data));
-
+      .then((data) => {
+        console.log('Fetched Products:', data); // Log the products
+        setAll_Product(data);
+      });
+  
     if (localStorage.getItem('auth-token')) {
-      fetch('https://e-commerce-react-xp0f.onrender.com/getcart', { // Updated URL
+      fetch('https://e-commerce-react-xp0f.onrender.com/getcart', {
         method: 'POST',
         headers: {
-          Accept: 'application/json', // Changed from 'application/form-data' to 'application/json'
+          Accept: 'application/json',
           'auth-token': `${localStorage.getItem('auth-token')}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({}), // Send an empty object as JSON
+        body: JSON.stringify({}),
       })
         .then((response) => response.json())
-        .then((data) => setCartItems(data));
+        .then((data) => {
+          console.log('Fetched Cart:', data); // Log the cart items
+          setCartItems(data);
+        });
     }
   }, []);
+  
 
   const addToCart = (itemId) => {
     setCartItems((prev) => ({ ...prev, [itemId]: (prev[itemId] || 0) + 1 }));
