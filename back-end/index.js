@@ -19,13 +19,19 @@ app.use(cors({
 }));
 
 // Connect to MongoDB
-mongoose.connect(process.env.MONGODB_URI)
+const mongoURI = process.env.MONGODB_URI;
+
+mongoose.connect(mongoURI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+})
 .then(() => {
-  console.log(`MongoDB connected`);
+    console.log(`MongoDB connected`);
 })
 .catch(err => {
-  console.error('MongoDB connection error:', err);
+    console.error('MongoDB connection error:', err);
 });
+
 
 // API Creation
 app.get("/", (req, res) => {
