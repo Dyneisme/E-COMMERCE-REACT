@@ -14,7 +14,7 @@ const bcrypt = require("bcrypt");  // Add bcrypt for hashing passwords
 // Middleware to parse JSON and use CORS
 app.use(express.json());
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'https://e-commerce-react-front-end.onrender.com/login',  // Adjust this if needed for your front-end
+  origin: process.env.CORS_ORIGIN || 'https://e-commerce-react-front-end.onrender.com',  // Adjust this if needed for your front-end
   credentials: true
 }));
 
