@@ -11,8 +11,12 @@ const cors = require("cors");
 const fs = require("fs");
 const bcrypt = require("bcrypt");  // Add bcrypt for hashing passwords
 
-// Middleware to parse JSON and use CORS
+// Middleware to parse JSON
 app.use(express.json());
+
+// CORS setup
+console.log('CORS Origin:', process.env.CORS_ORIGIN);  // Debugging line
+
 app.use(cors({
   origin: process.env.CORS_ORIGIN || 'https://e-commerce-react-front-end.onrender.com',  // Adjust this if needed for your front-end
   credentials: true
@@ -29,7 +33,6 @@ mongoose.connect(mongoURI, {
 .catch(err => {
     console.error('MongoDB connection error:', err);
 });
-
 
 // API Creation
 app.get("/", (req, res) => {
