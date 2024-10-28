@@ -23,17 +23,6 @@ app.use(cors({
   credentials: true,
 }));
 
-// Setup Multer storage configuration
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, 'uploads/');
-  },
-  filename: function (req, file, cb) {
-    cb(null, Date.now() + '-' + file.originalname);
-  }
-});
-
-const upload = multer({ storage: storage });
 
 // Connect to MongoDB
 const mongoURI = process.env.MONGODB_URI;
@@ -54,15 +43,11 @@ app.get("/", (req, res) => {
 
 // Image Storage Engine
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const dir = './upload/images';
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });  // Create the directory if it doesn't exist
-    }
-    cb(null, dir);
+  destination: function (req, file, cb) {
+    cb(null, 'uploads/');
   },
-  filename: (req, file, cb) => {
-    return cb(null, `${file.fieldname}_${Date.now()}${path.extname(file.originalname)}`);
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + '-' + file.originalname);
   }
 });
 
