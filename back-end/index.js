@@ -5,7 +5,7 @@ const mongoose = require('mongoose');
 const multer = require('multer'); 
 const fs = require('fs');          // Import fs for file system operations
 const path = require('path');      // Import path for handling file paths
-const PORT = process.env.PORT || 10000;
+
 
 
 // Initialize the app
