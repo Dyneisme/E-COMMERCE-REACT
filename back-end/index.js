@@ -18,7 +18,7 @@ app.use(express.json());
 console.log('CORS Origin:', process.env.CORS_ORIGIN);  // Debugging line
 
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'https://e-commerce-react-front-end.onrender.com',  // Adjust this if needed for your front-end
+  origin: process.env.CORS_ORIGIN || 'https://dyneisme.github.io/E-COMMERCE-REACT',  // Adjust this if needed for your front-end
   credentials: true
 }));
 
