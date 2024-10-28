@@ -13,7 +13,7 @@ const app = express();
 // Configure CORS
 const allowedOrigins = [
   'http://localhost:3000', // Local development
-  'https://dyneisme.github.io/E-COMMERCE-REACT' // Production
+  'https://e-commerce-react-front-end.onrender.com' // Production
 ];
 
 app.use(cors({
