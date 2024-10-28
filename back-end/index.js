@@ -2,6 +2,7 @@
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
+const multer = require('multer'); 
 
 // Initialize the app
 const app = express();
@@ -21,6 +22,18 @@ app.use(cors({
   },
   credentials: true,
 }));
+
+// Setup Multer storage configuration
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'uploads/');
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + '-' + file.originalname);
+  }
+});
+
+const upload = multer({ storage: storage });
 
 // Connect to MongoDB
 const mongoURI = process.env.MONGODB_URI;
