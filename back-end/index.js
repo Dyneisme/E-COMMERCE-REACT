@@ -29,9 +29,9 @@ app.use(cors({
 
 
 // Connect to MongoDB
-const mongodbURI = process.env.MONGODB_URI;
+const mongoURI = process.env.MONGODB_URI;
 
-mongoose.connect(mongodbURI, {})
+mongoose.connect(mongoURI, {})
 .then(() => {
     console.log(`MongoDB connected`);
 })
