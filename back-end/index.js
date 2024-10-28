@@ -10,14 +10,15 @@ const path = require('path');      // Import path for handling file paths
 // Initialize the app
 const app = express();
 
-// Define CORS origin and log to check
-const allowedOrigin = process.env.CORS_ORIGIN || 'https://e-commerce-react-front-end.onrender.com';
-console.log("CORS Origin:", allowedOrigin);
-
 // Configure CORS
+const allowedOrigins = [
+  'http://localhost:3000', // Local development
+  'https://dyneisme.github.io/E-COMMERCE-REACT' // Production
+];
+
 app.use(cors({
   origin: (origin, callback) => {
-    if (allowedOrigin.includes(origin) || !origin) {
+    if (allowedOrigins.includes(origin) || !origin) {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));
@@ -30,14 +31,14 @@ app.use(cors({
 // Connect to MongoDB
 const mongodbURI = process.env.MONGODB_URI;
 
-mongoose.connect(mongodbURI, {
-})
+mongoose.connect(mongodbURI, {})
 .then(() => {
     console.log(`MongoDB connected`);
 })
 .catch(err => {
     console.error('MongoDB connection error:', err);
 });
+
 
 // API Creation
 app.get("/", (req, res) => {
