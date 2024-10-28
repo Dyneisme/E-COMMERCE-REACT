@@ -1,25 +1,25 @@
-require('dotenv').config();  // Add this line at the top to load environment variables
+// Import dependencies
+const express = require('express');
+const cors = require('cors');
+const mongoose = require('mongoose');
 
-const port = process.env.PORT || 4000;
-const express = require("express");
+// Initialize the app
 const app = express();
-const mongoose = require("mongoose");
-const jwt = require("jsonwebtoken");
-const multer = require("multer");
-const path = require("path");
-const cors = require("cors");
-const fs = require("fs");
-const bcrypt = require("bcrypt");  // Add bcrypt for hashing passwords
 
-// Middleware to parse JSON
-app.use(express.json());
+// Define CORS origin and log to check
+const allowedOrigin = process.env.CORS_ORIGIN || 'https://e-commerce-react-front-end.onrender.com';
+console.log("CORS Origin:", allowedOrigin);
 
-// CORS setup
-console.log('CORS Origin:', process.env.CORS_ORIGIN);  // Debugging line
-
+// Configure CORS
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'https://e-commerce-react-front-end.onrender.com',  // Adjust this if needed for your front-end
-  credentials: true
+  origin: (origin, callback) => {
+    if (allowedOrigin.includes(origin) || !origin) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
 }));
 
 // Connect to MongoDB
