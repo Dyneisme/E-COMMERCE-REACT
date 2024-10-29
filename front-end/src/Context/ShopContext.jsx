@@ -16,7 +16,7 @@ const ShopContextProvider = (props) => {
 
   
   // Fetch products and cart data on component mount
-  useEffect(() => {
+   useEffect(() => {
     // Fetch products
     fetch('https://e-commerce-react-xp0f.onrender.com/allproducts')
       .then((response) => response.text()) // Get the raw response as text
@@ -31,15 +31,16 @@ const ShopContextProvider = (props) => {
       });
 
     // Fetch cart data if auth token exists
-    if (localStorage.getItem('auth-token')) {
+    const authToken = localStorage.getItem('auth-token');
+    if (authToken) {
       fetch('https://e-commerce-react-xp0f.onrender.com/getcart', {
         method: 'POST',
         headers: {
           Accept: 'application/json',
-          'auth-token': localStorage.getItem('auth-token'),
+          'auth-token': authToken, // Include the auth token in the headers
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({}),
+        body: JSON.stringify({}), // Send an empty body as the server expects
       })
         .then((response) => response.json())
         .then((data) => {
@@ -51,6 +52,7 @@ const ShopContextProvider = (props) => {
         });
     }
   }, []);
+
 
   
   const addToCart = async (itemId) => {
