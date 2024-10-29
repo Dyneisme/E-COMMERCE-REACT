@@ -13,7 +13,6 @@ const app = express();
 
 // Configure CORS
 const allowedOrigins = [
-  'http://localhost:3000', // Local development
   'https://e-commerce-react-front-end.onrender.com' // Production
 ];
 
@@ -68,7 +67,7 @@ app.use('/images', express.static('upload/images'));
 app.post("/upload", upload.single('product'), (req, res) => {
   res.json({
     success: 1,
-    image_url: `http://localhost:${PORT}/images/${req.file.filename}`
+    image_url: `https://e-commerce-react-xp0f.onrender.com/images/${req.file.filename}`
   });
 });
 
