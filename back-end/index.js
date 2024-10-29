@@ -196,6 +196,18 @@ app.get('/allproducts', async (req, res) => {
   }
 });
 
+// Fetch popular products endpoint
+app.get('/popularinwomen', async (req, res) => {
+  try {
+    const popularProducts = await Product.find({ category: 'Women' });
+    res.json(popularProducts);
+  } catch (error) {
+    console.error("Error fetching popular products:", error);
+    res.status(500).json({ error: "Failed to fetch popular products" });
+  }
+});
+
+
 
 // Get Cart Data
 app.post('/getcart', fetchUser, async (req, res) => {
