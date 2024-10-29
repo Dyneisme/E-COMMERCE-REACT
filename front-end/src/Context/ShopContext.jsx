@@ -14,47 +14,45 @@ const ShopContextProvider = (props) => {
   const [all_product, setAll_Product] = useState([]);
   const [cartItems, setCartItems] = useState(getDefaultCart());
 
+  
   // Fetch products and cart data on component mount
   useEffect(() => {
-   const fetchProducts = async () => {
-  try {
-    const response = await fetch('https://e-commerce-react-xp0f.onrender.com/allproducts');
-    const text = await response.text(); // Get the raw response as text
-    console.log('Raw Response:', text); // Log the response for debugging
-    const data = JSON.parse(text); // Now parse it to JSON
-    console.log('Fetched Products:', data);
-    setAll_Product(data);
-  } catch (error) {
-    console.error('Error fetching products:', error);
-  }
-};
+    // Fetch products
+    fetch('https://e-commerce-react-xp0f.onrender.com/allproducts')
+      .then((response) => response.text()) // Get the raw response as text
+      .then((text) => {
+        console.log('Raw Response:', text); // Log the response for debugging
+        const data = JSON.parse(text); // Now parse it to JSON
+        console.log('Fetched Products:', data);
+        setAll_Product(data);
+      })
+      .catch((error) => {
+        console.error('Error fetching products:', error);
+      });
 
-
-    const fetchCart = async () => {
-      if (localStorage.getItem('auth-token')) {
-        try {
-          const response = await fetch('https://e-commerce-react-xp0f.onrender.com/getcart', {
-            method: 'POST',
-            headers: {
-              Accept: 'application/json',
-              'auth-token': localStorage.getItem('auth-token'),
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({}),
-          });
-          const data = await response.json();
-          console.log('Fetched Cart:', data);
+    // Fetch cart data if auth token exists
+    if (localStorage.getItem('auth-token')) {
+      fetch('https://e-commerce-react-xp0f.onrender.com/getcart', {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'auth-token': localStorage.getItem('auth-token'),
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({}),
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          console.log('Fetched Cart:', data); // Log the cart items
           setCartItems(data);
-        } catch (error) {
+        })
+        .catch((error) => {
           console.error('Error fetching cart:', error);
-        }
-      }
-    };
-
-    fetchProducts();
-    fetchCart();
+        });
+    }
   }, []);
 
+  
   const addToCart = async (itemId) => {
     setCartItems((prev) => ({ ...prev, [itemId]: (prev[itemId] || 0) + 1 }));
     if (localStorage.getItem('auth-token')) {
