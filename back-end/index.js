@@ -19,10 +19,9 @@ app.use((req, res, next) => {
   next();
 });
 
+
 // Configure CORS
-const allowedOrigins = [
-  'https://e-commerce-react-front-end.onrender.com' // Production
-];
+const allowedOrigins = process.env.CORS_ORIGIN.split(',');
 
 app.use(cors({
   origin: (origin, callback) => {
