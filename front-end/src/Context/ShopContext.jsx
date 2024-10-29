@@ -13,31 +13,24 @@ const getDefaultCart = () => {
 const ShopContextProvider = (props) => {
   const [all_product, setAll_Product] = useState([]);
   const [cartItems, setCartItems] = useState(getDefaultCart());
-  const [error, setError] = useState(null);
 
-  const apiBaseUrl = process.env.REACT_APP_API_BASE_URL;
-
+  // Fetch products and cart data on component mount
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await fetch(`${apiBaseUrl}/allproducts`);
-        
-        if (!response.ok) {
-          throw new Error(`Failed to fetch products: ${response.statusText}`);
-        }
-
+        const response = await fetch('https://e-commerce-react-xp0f.onrender.com/allproducts');
         const data = await response.json();
+        console.log('Fetched Products:', data);
         setAll_Product(data);
       } catch (error) {
         console.error('Error fetching products:', error);
-        setError('Unable to load products. Please try again later.');
       }
     };
 
     const fetchCart = async () => {
       if (localStorage.getItem('auth-token')) {
         try {
-          const response = await fetch(`${apiBaseUrl}/getcart`, {
+          const response = await fetch('https://e-commerce-react-xp0f.onrender.com/getcart', {
             method: 'POST',
             headers: {
               Accept: 'application/json',
@@ -46,29 +39,24 @@ const ShopContextProvider = (props) => {
             },
             body: JSON.stringify({}),
           });
-
-          if (!response.ok) {
-            throw new Error(`Failed to fetch cart: ${response.statusText}`);
-          }
-
           const data = await response.json();
+          console.log('Fetched Cart:', data);
           setCartItems(data);
         } catch (error) {
           console.error('Error fetching cart:', error);
-          setError('Unable to load cart items. Please try again later.');
         }
       }
     };
 
     fetchProducts();
     fetchCart();
-  }, [apiBaseUrl]);
+  }, []);
 
   const addToCart = async (itemId) => {
     setCartItems((prev) => ({ ...prev, [itemId]: (prev[itemId] || 0) + 1 }));
     if (localStorage.getItem('auth-token')) {
       try {
-        await fetch(`${apiBaseUrl}/addtocart`, {
+        await fetch('https://e-commerce-react-xp0f.onrender.com/addtocart', {
           method: 'POST',
           headers: {
             Accept: 'application/json',
@@ -79,7 +67,6 @@ const ShopContextProvider = (props) => {
         });
       } catch (error) {
         console.error('Error adding to cart:', error);
-        setError('Failed to add item to cart. Please try again.');
       }
     }
   };
@@ -91,7 +78,7 @@ const ShopContextProvider = (props) => {
     }));
     if (localStorage.getItem('auth-token')) {
       try {
-        await fetch(`${apiBaseUrl}/removefromcart`, {
+        await fetch('https://e-commerce-react-xp0f.onrender.com/removefromcart', {
           method: 'POST',
           headers: {
             Accept: 'application/json',
@@ -102,7 +89,6 @@ const ShopContextProvider = (props) => {
         });
       } catch (error) {
         console.error('Error removing from cart:', error);
-        setError('Failed to remove item from cart. Please try again.');
       }
     }
   };
@@ -128,12 +114,10 @@ const ShopContextProvider = (props) => {
     cartItems,
     addToCart,
     removeFromCart,
-    error, // Add error state to the context
   };
 
   return (
     <ShopContext.Provider value={contextValue}>
-      {error && <p className="error-message">{error}</p>}
       {props.children}
     </ShopContext.Provider>
   );
