@@ -185,6 +185,18 @@ app.post('/removefromcart', fetchUser, async (req, res) => {
   }
 });
 
+// Fetch all products endpoint
+app.get('/allproducts', async (req, res) => {
+  try {
+    const products = await Product.find({});
+    res.json(products);
+  } catch (error) {
+    console.error("Error fetching products:", error);
+    res.status(500).json({ error: "Failed to fetch products" });
+  }
+});
+
+
 // Get Cart Data
 app.post('/getcart', fetchUser, async (req, res) => {
   try {
