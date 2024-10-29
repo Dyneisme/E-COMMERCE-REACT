@@ -18,11 +18,12 @@ const ShopContextProvider = (props) => {
 
   useEffect(() => {
     fetch('https://e-commerce-react-xp0f.onrender.com/allproducts')
-      .then((response) => response.json())
-      .then((data) => {
-        console.log('Fetched Products:', data); // Log the products
-        setAll_Product(data);
-      });
+   .then((response) => response.json())
+   .then((data) => {
+     console.log('Fetched Products:', data); 
+     setAll_Product(data);
+   })
+   .catch((error) => console.error('Error fetching products:', error));
   
     if (localStorage.getItem('auth-token')) {
       fetch('https://e-commerce-react-xp0f.onrender.com/getcart', {
@@ -60,8 +61,9 @@ const ShopContextProvider = (props) => {
     }
   };
 
-  const removeFromCart = (itemId) => {
-    setCartItems((prev) => ({ ...prev, [itemId]: prev[itemId] - 1 }));
+const removeFromCart = (itemId) => {
+   setCartItems((prev) => ({...prev,[itemId]: Math.max((prev[itemId] || 0) - 1, 0) // Ensures cart count doesn't go below 0
+   }));
     if (localStorage.getItem('auth-token')) {
       fetch('https://e-commerce-react-xp0f.onrender.com/removefromcart', { // Updated URL
         method: 'POST',
