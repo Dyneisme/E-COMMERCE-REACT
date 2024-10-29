@@ -16,16 +16,19 @@ const ShopContextProvider = (props) => {
 
   // Fetch products and cart data on component mount
   useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const response = await fetch('https://e-commerce-react-xp0f.onrender.com/allproducts');
-        const data = await response.json();
-        console.log('Fetched Products:', data);
-        setAll_Product(data);
-      } catch (error) {
-        console.error('Error fetching products:', error);
-      }
-    };
+   const fetchProducts = async () => {
+  try {
+    const response = await fetch('https://e-commerce-react-xp0f.onrender.com/allproducts');
+    const text = await response.text(); // Get the raw response as text
+    console.log('Raw Response:', text); // Log the response for debugging
+    const data = JSON.parse(text); // Now parse it to JSON
+    console.log('Fetched Products:', data);
+    setAll_Product(data);
+  } catch (error) {
+    console.error('Error fetching products:', error);
+  }
+};
+
 
     const fetchCart = async () => {
       if (localStorage.getItem('auth-token')) {
