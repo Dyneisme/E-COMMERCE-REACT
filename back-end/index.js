@@ -1,22 +1,30 @@
-// Import dependencies
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
-const multer = require('multer');
-const fs = require('fs');
-const path = require('path');
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
-require('dotenv').config();
+const multer = require('multer'); 
+const fs = require('fs');          // Import fs for file system operations
+const path = require('path');      // Import path for handling file paths
 
+
+
+// Initialize the app
 const app = express();
-app.use(express.json());
 
-// Configure CORS with origin fallback
-const allowedOrigins = process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : [];
+// Custom CORS Headers
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "https://e-commerce-react-front-end.onrender.com");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, auth-token");
+  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+  next();
+});
+
+
+// Configure CORS
+const allowedOrigins = process.env.CORS_ORIGIN.split(',');
+
 app.use(cors({
   origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin)) {
+    if (allowedOrigins.includes(origin) || !origin) {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));
@@ -25,210 +33,252 @@ app.use(cors({
   credentials: true,
 }));
 
+
 // Connect to MongoDB
 const mongoURI = process.env.MONGODB_URI;
+
 mongoose.connect(mongoURI, {})
-  .then(() => console.log(`MongoDB connected`))
-  .catch(err => console.error('MongoDB connection error:', err));
+.then(() => {
+    console.log(MongoDB connected);
+})
+.catch(err => {
+    console.error('MongoDB connection error:', err);
+});
 
-// Serve Static Images over HTTPS
-app.use('/images', express.static(path.join(__dirname, 'upload/images')));
 
-// Image Storage Engine with HTTPS URLs
+// API Creation
+app.get("/", (req, res) => {
+  res.send("Express App is Running");
+});
+
+// Image Storage Engine
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     const dir = './upload/images';
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });  // Create the directory if it doesn't exist
+    }
     cb(null, dir);
   },
   filename: (req, file, cb) => {
-    cb(null, `${file.fieldname}_${Date.now()}${path.extname(file.originalname)}`);
+    return cb(null, ${file.fieldname}_${Date.now()}${path.extname(file.originalname)});
   }
 });
+
 const upload = multer({ storage: storage });
 
-// API Root
-app.get("/", (req, res) => res.send("Express App is Running"));
+// Creating Upload Endpoint
+app.use('/images', express.static('upload/images'));
 
-// Upload Endpoint with HTTPS Image URL
 app.post("/upload", upload.single('product'), (req, res) => {
-  const imageUrl = `${process.env.BASE_URL}/images/${req.file.filename}`;
-  res.json({ success: 1, image_url: imageUrl });
+  res.json({
+    success: 1,
+    image_url: https://e-commerce-react-xp0f.onrender.com/images/${req.file.filename}
+  });
 });
 
-// Product Schema and Model
+// Schema for Creating Products
 const Product = mongoose.model("Product", {
-  id: { type: Number, required: true },
-  name: { type: String, required: true },
-  image: { type: String, required: true },
-  category: { type: String, required: true },
-  new_price: { type: Number, required: true },
-  old_price: { type: Number, required: true },
-  date: { type: Date, default: Date.now },
-  available: { type: Boolean, default: true },
+  id: {
+    type: Number,
+    required: true,
+  },
+  name: {
+    type: String,
+    required: true,
+  },
+  image: {
+    type: String,
+    required: true,
+  },
+  category: {
+    type: String,
+    required: true,
+  },
+  new_price: {
+    type: Number,
+    required: true,
+  },
+  old_price: {
+    type: Number,
+    required: true,
+  },
+  date: {
+    type: Date,
+    default: Date.now,
+  },
+  available: {
+    type: Boolean,
+    default: true,
+  },
 });
 
-// Add Product Endpoint
+// Adding New Product
 app.post('/addproduct', async (req, res) => {
-  try {
-    const lastProduct = await Product.findOne().sort({ id: -1 });
-    const id = lastProduct ? lastProduct.id + 1 : 1;
+  let products = await Product.find({});
+  let id = products.length > 0 ? products.slice(-1)[0].id + 1 : 1;
 
-    const product = new Product({
-      id,
-      name: req.body.name,
-      image: req.body.image,
-      category: req.body.category,
-      new_price: req.body.new_price,
-      old_price: req.body.old_price,
-    });
+  const product = new Product({
+    id: id,
+    name: req.body.name,
+    image: req.body.image,
+    category: req.body.category,
+    new_price: req.body.new_price,
+    old_price: req.body.old_price,
+  });
 
-    await product.save();
-    res.json({ success: true, name: req.body.name });
-  } catch (error) {
-    console.error("Error adding product:", error);
-    res.status(500).json({ success: false, message: "Internal server error" });
-  }
+  await product.save();
+  res.json({
+    success: true,
+    name: req.body.name,
+  });
 });
 
-// User Schema and Model
+// Deleting a Product
+app.post('/removeproduct', async (req, res) => {
+  await Product.findOneAndDelete({ id: req.body.id });
+  res.json({
+    success: true,
+    name: req.body.name
+  });
+});
+
+// Getting All Products
+app.get('/allproducts', async (req, res) => {
+  let products = await Product.find({});
+  res.send(products);
+});
+
+// Schema for User Model
 const Users = mongoose.model('Users', {
-  name: { type: String },
-  email: { type: String, unique: true },
-  password: { type: String },
-  cartData: { type: Object },
-  date: { type: Date, default: Date.now },
+  name: {
+    type: String,
+  },
+  email: {
+    type: String,
+    unique: true,
+  },
+  password: {
+    type: String,
+  },
+  cartData: {
+    type: Object,
+  },
+  date: {
+    type: Date,
+    default: Date.now,
+  }
 });
 
-// Signup Endpoint with Password Hashing
+// Registering User (Signup)
 app.post('/signup', async (req, res) => {
-  try {
-    const existingUser = await Users.findOne({ email: req.body.email });
-    if (existingUser) {
-      return res.status(400).json({ success: false, errors: "User with this email already exists" });
+  let check = await Users.findOne({ email: req.body.email });
+  if (check) {
+    return res.status(400).json({ success: false, errors: "Existing user found with the same email address" });
+  }
+
+  let cart = {};
+  for (let i = 0; i < 300; i++) {
+    cart[i] = 0;
+  }
+
+  // Hash the password before saving
+  const salt = await bcrypt.genSalt(10);
+  const hashedPassword = await bcrypt.hash(req.body.password, salt);
+
+  const user = new Users({
+    name: req.body.username,
+    email: req.body.email,
+    password: hashedPassword,  // Save the hashed password
+    cartData: cart,
+  });
+
+  await user.save();
+
+  const data = {
+    user: {
+      id: user.id
     }
+  };
 
-    const cart = Object.fromEntries(Array.from({ length: 300 }, (_, i) => [i, 0]));
-    const hashedPassword = await bcrypt.hash(req.body.password, 10);
-
-    const user = new Users({
-      name: req.body.username,
-      email: req.body.email,
-      password: hashedPassword,
-      cartData: cart,
-    });
-
-    await user.save();
-    const token = jwt.sign({ user: { id: user.id } }, process.env.JWT_SECRET);
-    res.json({ success: true, token });
-  } catch (error) {
-    console.error("Signup error:", error);
-    res.status(500).json({ success: false, message: "Internal server error" });
-  }
+  const token = jwt.sign(data, process.env.JWT_SECRET);
+  res.json({ success: true, token });
 });
 
-// Login Endpoint with Password Comparison
+// User Login
 app.post('/login', async (req, res) => {
-  try {
-    const user = await Users.findOne({ email: req.body.email });
-    if (!user) return res.status(400).json({ success: false, errors: "Incorrect Email" });
-
-    const isMatch = await bcrypt.compare(req.body.password, user.password);
-    if (!isMatch) return res.status(400).json({ success: false, errors: "Incorrect Password" });
-
-    const token = jwt.sign({ user: { id: user.id } }, process.env.JWT_SECRET);
-    res.json({ success: true, token });
-  } catch (error) {
-    console.error("Login error:", error);
-    res.status(500).json({ success: false, message: "Internal server error" });
+  let user = await Users.findOne({ email: req.body.email });
+  if (user) {
+    // Compare the hashed password
+    const passCompare = await bcrypt.compare(req.body.password, user.password);
+    if (passCompare) {
+      const data = {
+        user: {
+          id: user.id
+        }
+      };
+      const token = jwt.sign(data, process.env.JWT_SECRET);
+      res.json({ success: true, token });
+    } else {
+      res.json({ success: false, errors: "Wrong Password" });
+    }
+  } else {
+    res.json({ success: false, errors: "Wrong Email Id" });
   }
 });
 
-// JWT Middleware for Protected Routes
-const fetchUser = (req, res, next) => {
-  const token = req.header('auth-token');
-  if (!token) return res.status(401).json({ errors: "Unauthorized access" });
+// New Collections Endpoint
+app.get('/new-collections', async (req, res) => {
+  let products = await Product.find({});
+  let newcollection = products.slice(1).slice(-8);
+  res.send(newcollection);
+});
 
+// Popular in Women Endpoint
+app.get('/popularinwomen', async (req, res) => {
+  let products = await Product.find({ category: "women" });
+  let popular_in_women = products.slice(0, 4);
+  res.send(popular_in_women);
+});
+
+// Middleware to Fetch User with JWT
+const fetchUser = async (req, res, next) => {
+  const token = req.header('auth-token');
+  if (!token) {
+    return res.status(401).send({ errors: "Please authenticate using a valid token" });
+  }
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded.user;
+    const data = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = data.user;
     next();
   } catch (error) {
-    res.status(401).json({ errors: "Invalid token" });
+    return res.status(401).send({ errors: "Please authenticate using a valid token" });
   }
 };
 
-// Add and Remove Product from Cart with JWT Authentication
+// Add Product to Cart
 app.post('/addtocart', fetchUser, async (req, res) => {
-  try {
-    const userData = await Users.findById(req.user.id);
-    userData.cartData[req.body.itemId] = (userData.cartData[req.body.itemId] || 0) + 1;
-    await userData.save();
-    res.json({ success: true, message: "Product added to cart" });
-  } catch (error) {
-    console.error("Add to cart error:", error);
-    res.status(500).json({ success: false, message: "Internal server error" });
-  }
+  let userData = await Users.findOne({ _id: req.user.id });
+  userData.cartData[req.body.itemId] += 1;
+  await Users.findOneAndUpdate({ _id: req.user.id }, { cartData: userData.cartData });
+  res.send("Added");
 });
 
+// Remove Product from Cart
 app.post('/removefromcart', fetchUser, async (req, res) => {
-  try {
-    const userData = await Users.findById(req.user.id);
-    if (userData.cartData[req.body.itemId] > 0) {
-      userData.cartData[req.body.itemId] -= 1;
-      await userData.save();
-    }
-    res.json({ success: true, message: "Product removed from cart" });
-  } catch (error) {
-    console.error("Remove from cart error:", error);
-    res.status(500).json({ success: false, message: "Internal server error" });
-  }
-});
-
-// Fetch all products endpoint
-app.get('/allproducts', async (req, res) => {
-  try {
-    const products = await Product.find({});
-    res.json(products);
-  } catch (error) {
-    console.error("Error fetching products:", error);
-    res.status(500).json({ error: "Failed to fetch products" });
-  }
-});
-
-// Fetch popular products endpoint
-app.get('/popularinwomen', async (req, res) => {
-  try {
-    const popularProducts = await Product.find({ category: 'Women' });
-    res.json(popularProducts);
-  } catch (error) {
-    console.error("Error fetching popular products:", error);
-    res.status(500).json({ error: "Failed to fetch popular products" });
-  }
-});
-
-// Fetch new collections endpoint
-app.get('/new-collections', async (req, res) => {
-  try {
-    const newCollections = await Product.find({ /* Define criteria if needed */ });
-    res.json(newCollections);
-  } catch (error) {
-    console.error("Error fetching new collections:", error);
-    res.status(500).json({ error: "Failed to fetch new collections" });
-  }
+  let userData = await Users.findOne({ _id: req.user.id });
+  if (userData.cartData[req.body.itemId] > 0)
+    userData.cartData[req.body.itemId] -= 1;
+  await Users.findOneAndUpdate({ _id: req.user.id }, { cartData: userData.cartData });
+  res.send("Removed");
 });
 
 // Get Cart Data
 app.post('/getcart', fetchUser, async (req, res) => {
-  try {
-    const userData = await Users.findById(req.user.id);
-    res.json({ success: true, cartData: userData.cartData });
-  } catch (error) {
-    console.error("Get cart error:", error);
-    res.status(500).json({ success: false, message: "Internal server error" });
-  }
+  let userData = await Users.findOne({ _id: req.user.id });
+  res.json(userData.cartData);
 });
 
 // Start the server
 const PORT = process.env.PORT || 10000;
-app.listen(PORT, () => console.log(`Server Running on Port ${PORT}`));
+app.listen(PORT, () => console.log(Server Running on Port ${PORT}));
