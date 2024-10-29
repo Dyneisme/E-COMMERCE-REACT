@@ -148,6 +148,39 @@ const fetchUser = (req, res, next) => {
   }
 };
 
+// Add the following routes to your index.js file
+
+// New Collections Endpoint
+app.get('/new-collections', async (req, res) => {
+  try {
+    const newProducts = await Product.find({}).sort({ date: -1 }).limit(10); // Adjust as needed
+    res.json(newProducts);
+  } catch (error) {
+    res.status(500).json({ success: false, error: 'Server error' });
+  }
+});
+
+// Popular in Women Endpoint
+app.get('/popularinwomen', async (req, res) => {
+  try {
+    const popularProducts = await Product.find({ category: 'Women' }).sort({ new_price: 1 }).limit(10); // Adjust as needed
+    res.json(popularProducts);
+  } catch (error) {
+    res.status(500).json({ success: false, error: 'Server error' });
+  }
+});
+
+// All Products Endpoint
+app.get('/allproducts', async (req, res) => {
+  try {
+    const allProducts = await Product.find({});
+    res.json(allProducts);
+  } catch (error) {
+    res.status(500).json({ success: false, error: 'Server error' });
+  }
+});
+
+
 // Add and Remove Product from Cart with JWT Authentication
 app.post('/addtocart', fetchUser, async (req, res) => {
   let userData = await Users.findById(req.user.id);
