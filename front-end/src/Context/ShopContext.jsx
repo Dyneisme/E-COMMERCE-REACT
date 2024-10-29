@@ -1,12 +1,10 @@
 import React, { createContext, useEffect, useState } from 'react';
 
-
-
 export const ShopContext = createContext(null);
 
-const getDefaultCart = () =>{
+const getDefaultCart = () => {
   let cart = {};
-  for (let index = 0; index < 300 + 1; index++) {
+  for (let index = 0; index <= 300; index++) {
     cart[index] = 0;
   }
   return cart;
@@ -16,95 +14,107 @@ const ShopContextProvider = (props) => {
   const [all_product, setAll_Product] = useState([]);
   const [cartItems, setCartItems] = useState(getDefaultCart());
 
+  // Fetch products and cart data on component mount
   useEffect(() => {
-    fetch('https://e-commerce-react-xp0f.onrender.com/allproducts')
-   .then((response) => response.json())
-   .then((data) => {
-     console.log('Fetched Products:', data); 
-     setAll_Product(data);
-   })
-   .catch((error) => console.error('Error fetching products:', error));
-  
-    if (localStorage.getItem('auth-token')) {
-      fetch('https://e-commerce-react-xp0f.onrender.com/getcart', {
-        method: 'POST',
-        headers: {
-          Accept: 'application/json',
-          'auth-token': `${localStorage.getItem('auth-token')}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({}),
-      })
-        .then((response) => response.json())
-        .then((data) => {
-          console.log('Fetched Cart:', data); // Log the cart items
-          setCartItems(data);
-        });
-    }
-  }, []);
-  
+    const fetchProducts = async () => {
+      try {
+        const response = await fetch('https://e-commerce-react-xp0f.onrender.com/allproducts');
+        const data = await response.json();
+        console.log('Fetched Products:', data);
+        setAll_Product(data);
+      } catch (error) {
+        console.error('Error fetching products:', error);
+      }
+    };
 
-  const addToCart = (itemId) => {
+    const fetchCart = async () => {
+      if (localStorage.getItem('auth-token')) {
+        try {
+          const response = await fetch('https://e-commerce-react-xp0f.onrender.com/getcart', {
+            method: 'POST',
+            headers: {
+              Accept: 'application/json',
+              'auth-token': localStorage.getItem('auth-token'),
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({}),
+          });
+          const data = await response.json();
+          console.log('Fetched Cart:', data);
+          setCartItems(data);
+        } catch (error) {
+          console.error('Error fetching cart:', error);
+        }
+      }
+    };
+
+    fetchProducts();
+    fetchCart();
+  }, []);
+
+  const addToCart = async (itemId) => {
     setCartItems((prev) => ({ ...prev, [itemId]: (prev[itemId] || 0) + 1 }));
     if (localStorage.getItem('auth-token')) {
-      fetch('https://e-commerce-react-xp0f.onrender.com/addtocart', { // Updated URL
-        method: 'POST',
-        headers: {
-          Accept: 'application/json',
-          'auth-token': `${localStorage.getItem('auth-token')}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ "itemId": itemId }),
-      })
-        .then((response) => response.json())
-        .then((data) => console.log(data));
+      try {
+        await fetch('https://e-commerce-react-xp0f.onrender.com/addtocart', {
+          method: 'POST',
+          headers: {
+            Accept: 'application/json',
+            'auth-token': localStorage.getItem('auth-token'),
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ itemId }),
+        });
+      } catch (error) {
+        console.error('Error adding to cart:', error);
+      }
     }
   };
 
-const removeFromCart = (itemId) => {
-   setCartItems((prev) => ({...prev,[itemId]: Math.max((prev[itemId] || 0) - 1, 0) // Ensures cart count doesn't go below 0
-   }));
+  const removeFromCart = async (itemId) => {
+    setCartItems((prev) => ({
+      ...prev,
+      [itemId]: Math.max((prev[itemId] || 0) - 1, 0),
+    }));
     if (localStorage.getItem('auth-token')) {
-      fetch('https://e-commerce-react-xp0f.onrender.com/removefromcart', { // Updated URL
-        method: 'POST',
-        headers: {
-          Accept: 'application/json',
-          'auth-token': `${localStorage.getItem('auth-token')}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ "itemId": itemId }),
-      })
-        .then((response) => response.json())
-        .then((data) => console.log(data));
+      try {
+        await fetch('https://e-commerce-react-xp0f.onrender.com/removefromcart', {
+          method: 'POST',
+          headers: {
+            Accept: 'application/json',
+            'auth-token': localStorage.getItem('auth-token'),
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ itemId }),
+        });
+      } catch (error) {
+        console.error('Error removing from cart:', error);
+      }
     }
   };
 
   const getTotalCartAmount = () => {
-    let totalAmount = 0;
-
-    for (const item in cartItems) {
-      if (cartItems[item] > 0) {
-        const itemInfo = all_product.find((product) => product.id === Number(item));
-        if (itemInfo) { // Ensure itemInfo is found
-          totalAmount += itemInfo.new_price * cartItems[item];
-        }
+    return Object.keys(cartItems).reduce((totalAmount, itemId) => {
+      if (cartItems[itemId] > 0) {
+        const itemInfo = all_product.find((product) => product.id === Number(itemId));
+        return itemInfo ? totalAmount + itemInfo.new_price * cartItems[itemId] : totalAmount;
       }
-    }
-
-    return totalAmount;
+      return totalAmount;
+    }, 0);
   };
 
   const getTotalCartItems = () => {
-    let totalItem = 0;
-    for (const item in cartItems) {
-      if (cartItems[item] > 0) {
-        totalItem += cartItems[item];
-      }
-    }
-    return totalItem;
+    return Object.values(cartItems).reduce((total, count) => total + count, 0);
   };
 
-  const contextValue = { getTotalCartItems, getTotalCartAmount, all_product, cartItems, addToCart, removeFromCart };
+  const contextValue = {
+    getTotalCartItems,
+    getTotalCartAmount,
+    all_product,
+    cartItems,
+    addToCart,
+    removeFromCart,
+  };
 
   return (
     <ShopContext.Provider value={contextValue}>
