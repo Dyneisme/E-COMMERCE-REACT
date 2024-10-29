@@ -207,7 +207,16 @@ app.get('/popularinwomen', async (req, res) => {
   }
 });
 
-
+// Fetch new collections endpoint
+app.get('/new-collections', async (req, res) => {
+  try {
+    const newCollections = await Product.find({ /* Define criteria if needed */ });
+    res.json(newCollections);
+  } catch (error) {
+    console.error("Error fetching new collections:", error);
+    res.status(500).json({ error: "Failed to fetch new collections" });
+  }
+});
 
 // Get Cart Data
 app.post('/getcart', fetchUser, async (req, res) => {
