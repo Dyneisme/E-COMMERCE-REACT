@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import './CSS/LoginSignup.css';
 
 const LoginSignup = () => {
-  const [state, setState] = useState("Login");
+  const [state, setState] = useState("Login"); // Toggle between Login and Signup
   const [formData, setFormData] = useState({
     username: "",
     password: "",
@@ -11,10 +11,12 @@ const LoginSignup = () => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // Handle form input changes
   const changeHandler = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  // Login function
   const login = async () => {
     setLoading(true);
     setError("");
@@ -30,8 +32,8 @@ const LoginSignup = () => {
       const responseData = await response.json();
 
       if (response.ok && responseData.success) {
-        localStorage.setItem('auth-token', responseData.token);
-        window.location.replace("/");
+        localStorage.setItem('auth-token', responseData.token); // Store auth token
+        window.location.replace("/"); // Redirect on success
       } else {
         setError(responseData.errors || "Login failed, please try again.");
       }
@@ -43,6 +45,7 @@ const LoginSignup = () => {
     }
   };
 
+  // Signup function
   const signup = async () => {
     setLoading(true);
     setError("");
@@ -58,8 +61,8 @@ const LoginSignup = () => {
       const responseData = await response.json();
 
       if (response.ok && responseData.success) {
-        localStorage.setItem('auth-token', responseData.token);
-        window.location.replace("/");
+        localStorage.setItem('auth-token', responseData.token); // Store auth token
+        window.location.replace("/"); // Redirect on success
       } else {
         setError(responseData.errors || "Signup failed, please try again.");
       }
