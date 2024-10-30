@@ -13,12 +13,18 @@ require('dotenv').config();  // Add dotenv for environment variables
 const app = express();
 app.use(express.json());  // Parse JSON bodies
 
+
 // Configure CORS
-const cors = require('cors');
-const allowedOrigins = ['https://e-commerce-react-front-end.onrender.com'];
+const allowedOrigins = process.env.CORS_ORIGIN.split(',');
 app.use(cors({
-  origin: allowedOrigins,
-  credentials: true
+  origin: (origin, callback) => {
+    if (allowedOrigins.includes(origin) || !origin) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
 }));
 
 
