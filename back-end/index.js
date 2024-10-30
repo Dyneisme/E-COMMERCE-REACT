@@ -14,17 +14,13 @@ const app = express();
 app.use(express.json());  // Parse JSON bodies
 
 // Configure CORS
-const allowedOrigins = process.env.CORS_ORIGIN.split(',');
+const cors = require('cors');
+const allowedOrigins = ['https://e-commerce-react-front-end.onrender.com'];
 app.use(cors({
-  origin: (origin, callback) => {
-    if (allowedOrigins.includes(origin) || !origin) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true,
+  origin: allowedOrigins,
+  credentials: true
 }));
+
 
 // Connect to MongoDB
 const mongoURI = process.env.MONGODB_URI;
@@ -134,21 +130,22 @@ app.post('/login', async (req, res) => {
   res.json({ success: true, token });
 });
 
-// JWT Middleware for Protected Routes
-const fetchUser = (req, res, next) => {
-  const token = req.header('auth-token');
-  if (!token) return res.status(401).json({ errors: "Please authenticate using a valid token" });
 
+// Middleware to Fetch User with JWT
+const fetchUser = async (req, res, next) => {
+  const token = req.header('auth-token');
+  if (!token) {
+    return res.status(401).send({ errors: "Please authenticate using a valid token" });
+  }
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded.user;
+    const data = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = data.user;
     next();
   } catch (error) {
-    res.status(401).json({ errors: "Invalid token" });
+    return res.status(401).send({ errors: "Please authenticate using a valid token" });
   }
 };
 
-// Add the following routes to your index.js file
 
 // New Collections Endpoint
 app.get('/new-collections', async (req, res) => {
