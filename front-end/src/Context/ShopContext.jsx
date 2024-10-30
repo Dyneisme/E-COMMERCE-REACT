@@ -51,7 +51,7 @@ const ShopContextProvider = (props) => {
           method: 'POST',
           headers: {
             Accept: 'application/json',
-            'auth-token': localStorage.getItem('auth-token'),
+            'auth-token': `${localStorage.getItem('auth-token')}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({ itemId }),
@@ -70,7 +70,7 @@ const ShopContextProvider = (props) => {
           method: 'POST',
           headers: {
             Accept: 'application/json',
-            'auth-token': localStorage.getItem('auth-token'),
+            'auth-token': `${localStorage.getItem('auth-token')}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({ itemId }),
