@@ -4,7 +4,7 @@ import { ShopContext } from '../../Context/ShopContext';
 import remove_icon from '../Assets/cart_cross_icon.png';
 
 const CartItems = () => {
-  const { getTotalCartAmount, all_product, cartItems, removeFromCart } = useContext(ShopContext);
+  const { getTotalCartAmount, allProduct, cartItems, removeFromCart } = useContext(ShopContext);
 
   return (
     <div className='cartitems'>
@@ -17,22 +17,21 @@ const CartItems = () => {
         <p>Remove</p>
       </div>
       <hr />
-      {all_product.map((e) => {
-        const quantity = cartItems[e.id] || 0; // Default to 0 if undefined
-        if (quantity > 0) {
+      {allProduct.map((product) => {
+        if (cartItems[product.id] > 0) {
           return (
-            <div key={e.id}>
+            <div key={product.id}>
               <div className="cartitems-format cartitems-format-main">
-                <img src={e.image || 'fallback_image.png'} alt={e.name} className='carticon-product-icon' />
-                <p>{e.name}</p>
-                <p>${e.new_price.toFixed(2)}</p>
-                <button className='cartitems-quantity'>{quantity}</button>
-                <p>${(e.new_price * quantity).toFixed(2)}</p>
-                <img className='cartitems-remaove-icon' src={remove_icon} onClick={() => removeFromCart(e.id)} alt='remove' />
+                <img src={product.image} alt={product.name} className='carticon-product-icon' />
+                <p>{product.name}</p>
+                <p>${product.new_price.toFixed(2)}</p>
+                <button className='cartitems-quantity'>{cartItems[product.id]}</button>
+                <p>${(product.new_price * cartItems[product.id]).toFixed(2)}</p>
+                <img className='cartitems-remove-icon' src={remove_icon} onClick={() => removeFromCart(product.id)} alt='remove' />
               </div>
               <hr />
             </div>
-          )
+          );
         }
         return null;
       })}
@@ -58,7 +57,7 @@ const CartItems = () => {
           <button>PROCEED TO CHECKOUT</button>
         </div>
         <div className="cartitems-promocode">
-          <p>If you have a promo code, enter it here</p>
+          <p>If you have a promo code, Enter it here</p>
           <div className="cartitems-promobox">
             <input type="text" placeholder='promo code' />
             <button>Submit</button>
@@ -67,6 +66,6 @@ const CartItems = () => {
       </div>
     </div>
   );
-};
+}
 
 export default CartItems;
