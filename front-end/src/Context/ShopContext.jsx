@@ -2,27 +2,19 @@ import React, { createContext, useEffect, useState } from 'react';
 
 export const ShopContext = createContext(null);
 
-const getDefaultCart = () => {
-  let cart = {};
-  for (let index = 0; index <= 300; index++) {
-    cart[index] = 0;
-  }
-  return cart;
-};
-
 const ShopContextProvider = (props) => {
   const [all_product, setAll_Product] = useState([]);
-  const [cartItems, setCartItems] = useState(getDefaultCart());
+  const [cartItems, setCartItems] = useState({}); // Use an empty object for flexibility
 
-  
-   useEffect(() => {
+  // Fetch products and cart on initial load
+  useEffect(() => {
     fetch('https://e-commerce-react-xp0f.onrender.com/allproducts')
       .then((response) => response.json())
       .then((data) => {
-        console.log('Fetched Products:', data); // Log the products
+        console.log('Fetched Products:', data);
         setAll_Product(data);
       });
-  
+
     if (localStorage.getItem('auth-token')) {
       fetch('https://e-commerce-react-xp0f.onrender.com/getcart', {
         method: 'POST',
@@ -35,14 +27,13 @@ const ShopContextProvider = (props) => {
       })
         .then((response) => response.json())
         .then((data) => {
-          console.log('Fetched Cart:', data); // Log the cart items
-          setCartItems(data);
-        });
+          console.log('Fetched Cart:', data);
+          setCartItems(data); // Assuming `data` has the correct structure for cartItems
+        })
+        .catch((error) => console.error('Error fetching cart:', error));
     }
   }, []);
 
-
-  
   const addToCart = async (itemId) => {
     setCartItems((prev) => ({ ...prev, [itemId]: (prev[itemId] || 0) + 1 }));
     if (localStorage.getItem('auth-token')) {
@@ -63,7 +54,10 @@ const ShopContextProvider = (props) => {
   };
 
   const removeFromCart = async (itemId) => {
-    setCartItems((prev) => ({...prev, [itemId]: Math.max((prev[itemId] || 0) - 1, 0), }));
+    setCartItems((prev) => ({
+      ...prev,
+      [itemId]: Math.max((prev[itemId] || 0) - 1, 0),
+    }));
     if (localStorage.getItem('auth-token')) {
       try {
         await fetch('https://e-commerce-react-xp0f.onrender.com/removefromcart', {
@@ -83,9 +77,10 @@ const ShopContextProvider = (props) => {
 
   const getTotalCartAmount = () => {
     return Object.keys(cartItems).reduce((totalAmount, itemId) => {
-      if (cartItems[itemId] > 0) {
+      const itemCount = cartItems[itemId];
+      if (itemCount > 0) {
         const itemInfo = all_product.find((product) => product.id === Number(itemId));
-        return itemInfo ? totalAmount + itemInfo.new_price * cartItems[itemId] : totalAmount;
+        return itemInfo ? totalAmount + itemInfo.new_price * itemCount : totalAmount;
       }
       return totalAmount;
     }, 0);
