@@ -15,40 +15,28 @@ const ShopContextProvider = (props) => {
   const [cartItems, setCartItems] = useState(getDefaultCart());
 
   
-  // Fetch products and cart data on component mount
    useEffect(() => {
-    // Fetch products
     fetch('https://e-commerce-react-xp0f.onrender.com/allproducts')
-      .then((response) => response.text()) // Get the raw response as text
-      .then((text) => {
-        console.log('Raw Response:', text); // Log the response for debugging
-        const data = JSON.parse(text); // Now parse it to JSON
-        console.log('Fetched Products:', data);
+      .then((response) => response.json())
+      .then((data) => {
+        console.log('Fetched Products:', data); // Log the products
         setAll_Product(data);
-      })
-      .catch((error) => {
-        console.error('Error fetching products:', error);
       });
-
-    // Fetch cart data if auth token exists
-    const authToken = localStorage.getItem('auth-token');
-    if (authToken) {
+  
+    if (localStorage.getItem('auth-token')) {
       fetch('https://e-commerce-react-xp0f.onrender.com/getcart', {
         method: 'POST',
         headers: {
           Accept: 'application/json',
-          'auth-token': authToken, // Include the auth token in the headers
+          'auth-token': `${localStorage.getItem('auth-token')}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({}), // Send an empty body as the server expects
+        body: JSON.stringify({}),
       })
         .then((response) => response.json())
         .then((data) => {
           console.log('Fetched Cart:', data); // Log the cart items
           setCartItems(data);
-        })
-        .catch((error) => {
-          console.error('Error fetching cart:', error);
         });
     }
   }, []);
