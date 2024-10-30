@@ -63,10 +63,7 @@ const ShopContextProvider = (props) => {
   };
 
   const removeFromCart = async (itemId) => {
-    setCartItems((prev) => ({
-      ...prev,
-      [itemId]: Math.max((prev[itemId] || 0) - 1, 0),
-    }));
+    setCartItems((prev) => ({...prev, [itemId]: Math.max((prev[itemId] || 0) - 1, 0), }));
     if (localStorage.getItem('auth-token')) {
       try {
         await fetch('https://e-commerce-react-xp0f.onrender.com/removefromcart', {
