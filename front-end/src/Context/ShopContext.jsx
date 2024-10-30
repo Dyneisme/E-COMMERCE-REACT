@@ -1,109 +1,84 @@
-import React, { createContext, useEffect, useState } from 'react';
+import React, { createContext, useState, useEffect } from 'react';
 
-export const ShopContext = createContext(null);
+// Create Context for Shop
+export const ShopContext = createContext();
 
-const ShopContextProvider = (props) => {
-  const [all_product, setAll_Product] = useState([]);
-  const [cartItems, setCartItems] = useState({}); // Use an empty object for flexibility
+// Mock default cart function
+const getDefaultCart = () => {
+  // Returns an empty cart with 0 quantity for each product (adjust as needed)
+  return {};
+};
 
-  // Fetch products and cart on initial load
+export const ShopProvider = ({ children }) => {
+  const [cartItems, setCartItems] = useState(getDefaultCart());
+  const [allProduct, setAllProduct] = useState([]);
+  
+  // Function to fetch the total cart amount
+  const getTotalCartAmount = () => {
+    return allProduct.reduce((acc, product) => {
+      const quantity = cartItems[product.id] || 0;
+      return acc + product.new_price * quantity;
+    }, 0);
+  };
+
+  // Fetch products and cart items after component mounts
   useEffect(() => {
-    fetch('https://e-commerce-react-xp0f.onrender.com/allproducts')
+    // Fetch all products
+    fetch('https://e-commerce-react-xp0f.onrender.com/all-products')
       .then((response) => response.json())
-      .then((data) => {
-        console.log('Fetched Products:', data);
-        setAll_Product(data);
-      });
-
-    if (localStorage.getItem('auth-token')) {
+      .then((data) => setAllProduct(data))
+      .catch((error) => console.error('Error fetching products:', error));
+    
+    // Fetch user cart items
+    const fetchCartData = () => {
       fetch('https://e-commerce-react-xp0f.onrender.com/getcart', {
         method: 'POST',
         headers: {
-          Accept: 'application/json',
-          'auth-token': `${localStorage.getItem('auth-token')}`,
+          'Accept': 'application/json',
+          'auth-token': `${localStorage.getItem('auth-token')}`, // Corrected format
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({}),
       })
-        .then((response) => response.json())
-        .then((data) => {
-          console.log('Fetched Cart:', data);
-          setCartItems(data); // Assuming `data` has the correct structure for cartItems
-        })
-        .catch((error) => console.error('Error fetching cart:', error));
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`Error: ${response.statusText}`);
+        }
+        return response.json();
+      })
+      .then((data) => {
+        console.log('Fetched Cart:', data);
+        setCartItems(data); // Assumes 'data' is a cart object in the form of { productId: quantity }
+      })
+      .catch((error) => console.error('Failed to fetch cart data:', error));
+    };
+
+    // Fetch cart data on mount if token exists
+    if (localStorage.getItem('auth-token')) {
+      fetchCartData();
     }
   }, []);
 
-  const addToCart = async (itemId) => {
-    setCartItems((prev) => ({ ...prev, [itemId]: (prev[itemId] || 0) + 1 }));
-    if (localStorage.getItem('auth-token')) {
-      try {
-        await fetch('https://e-commerce-react-xp0f.onrender.com/addtocart', {
-          method: 'POST',
-          headers: {
-            Accept: 'application/json',
-            'auth-token': `${localStorage.getItem('auth-token')}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ itemId }),
-        });
-      } catch (error) {
-        console.error('Error adding to cart:', error);
-      }
-    }
-  };
-
-  const removeFromCart = async (itemId) => {
-    setCartItems((prev) => ({
-      ...prev,
-      [itemId]: Math.max((prev[itemId] || 0) - 1, 0),
-    }));
-    if (localStorage.getItem('auth-token')) {
-      try {
-        await fetch('https://e-commerce-react-xp0f.onrender.com/removefromcart', {
-          method: 'POST',
-          headers: {
-            Accept: 'application/json',
-            'auth-token': `${localStorage.getItem('auth-token')}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ itemId }),
-        });
-      } catch (error) {
-        console.error('Error removing from cart:', error);
-      }
-    }
-  };
-
-  const getTotalCartAmount = () => {
-    return Object.keys(cartItems).reduce((totalAmount, itemId) => {
-      const itemCount = cartItems[itemId];
-      if (itemCount > 0) {
-        const itemInfo = all_product.find((product) => product.id === Number(itemId));
-        return itemInfo ? totalAmount + itemInfo.new_price * itemCount : totalAmount;
-      }
-      return totalAmount;
-    }, 0);
-  };
-
-  const getTotalCartItems = () => {
-    return Object.values(cartItems).reduce((total, count) => total + count, 0);
-  };
-
-  const contextValue = {
-    getTotalCartItems,
-    getTotalCartAmount,
-    all_product,
-    cartItems,
-    addToCart,
-    removeFromCart,
+  // Function to remove item from cart
+  const removeFromCart = (productId) => {
+    setCartItems((prevItems) => {
+      const updatedCart = { ...prevItems };
+      delete updatedCart[productId];
+      return updatedCart;
+    });
+    // Consider adding a fetch call to sync this with the backend
   };
 
   return (
-    <ShopContext.Provider value={contextValue}>
-      {props.children}
+    <ShopContext.Provider
+      value={{
+        cartItems,
+        allProduct,
+        getTotalCartAmount,
+        removeFromCart,
+      }}
+    >
+      {children}
     </ShopContext.Provider>
   );
 };
-
-export default ShopContextProvider;
