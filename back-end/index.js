@@ -102,40 +102,60 @@ const Users = mongoose.model('Users', {
 
 // Signup Endpoint with Password Hashing
 app.post('/signup', async (req, res) => {
-  let existingUser = await Users.findOne({ email: req.body.email });
-  if (existingUser) {
+  let check = await Users.findOne({ email: req.body.email });
+  if (check) {
     return res.status(400).json({ success: false, errors: "Existing user found with the same email address" });
   }
 
   let cart = {};
-  for (let i = 0; i < 300; i++) cart[i] = 0;
+  for (let i = 0; i < 300; i++) {
+    cart[i] = 0;
+  }
 
-  const hashedPassword = await bcrypt.hash(req.body.password, 10);
+  // Hash the password before saving
+  const salt = await bcrypt.genSalt(10);
+  const hashedPassword = await bcrypt.hash(req.body.password, salt);
+
   const user = new Users({
     name: req.body.username,
     email: req.body.email,
-    password: hashedPassword,
+    password: hashedPassword,  // Save the hashed password
     cartData: cart,
   });
 
   await user.save();
 
-  const token = jwt.sign({ user: { id: user.id } }, process.env.JWT_SECRET);
+  const data = {
+    user: {
+      id: user.id
+    }
+  };
+
+  const token = jwt.sign(data, process.env.JWT_SECRET);
   res.json({ success: true, token });
 });
 
-// Login Endpoint with Password Comparison
+// User Login
 app.post('/login', async (req, res) => {
   let user = await Users.findOne({ email: req.body.email });
-  if (!user) return res.json({ success: false, errors: "Wrong Email Id" });
-
-  const isMatch = await bcrypt.compare(req.body.password, user.password);
-  if (!isMatch) return res.json({ success: false, errors: "Wrong Password" });
-
-  const token = jwt.sign({ user: { id: user.id } }, process.env.JWT_SECRET);
-  res.json({ success: true, token });
+  if (user) {
+    // Compare the hashed password
+    const passCompare = await bcrypt.compare(req.body.password, user.password);
+    if (passCompare) {
+      const data = {
+        user: {
+          id: user.id
+        }
+      };
+      const token = jwt.sign(data, process.env.JWT_SECRET);
+      res.json({ success: true, token });
+    } else {
+      res.json({ success: false, errors: "Wrong Password" });
+    }
+  } else {
+    res.json({ success: false, errors: "Wrong Email Id" });
+  }
 });
-
 
 // Middleware to Fetch User with JWT
 const fetchUser = async (req, res, next) => {
@@ -184,26 +204,29 @@ app.get('/allproducts', async (req, res) => {
 });
 
 
-// Add and Remove Product from Cart with JWT Authentication
+// Add Product to Cart
 app.post('/addtocart', fetchUser, async (req, res) => {
-  let userData = await Users.findById(req.user.id);
+  let userData = await Users.findOne({ _id: req.user.id });
   userData.cartData[req.body.itemId] += 1;
-  await userData.save();
+  await Users.findOneAndUpdate({ _id: req.user.id }, { cartData: userData.cartData });
   res.send("Added");
 });
 
+// Remove Product from Cart
 app.post('/removefromcart', fetchUser, async (req, res) => {
-  let userData = await Users.findById(req.user.id);
-  if (userData.cartData[req.body.itemId] > 0) userData.cartData[req.body.itemId] -= 1;
-  await userData.save();
+  let userData = await Users.findOne({ _id: req.user.id });
+  if (userData.cartData[req.body.itemId] > 0)
+    userData.cartData[req.body.itemId] -= 1;
+  await Users.findOneAndUpdate({ _id: req.user.id }, { cartData: userData.cartData });
   res.send("Removed");
 });
 
-// creating endpoint to Get Cart Data
+// Get Cart Data
 app.post('/getcart', fetchUser, async (req, res) => {
   let userData = await Users.findOne({ _id: req.user.id });
   res.json(userData.cartData);
 });
+
 
 // Start the server
 const PORT = process.env.PORT || 10000;
