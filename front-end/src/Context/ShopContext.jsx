@@ -1,84 +1,63 @@
+// ShopContext.jsx
+
 import React, { createContext, useState, useEffect } from 'react';
 
-// Create Context for Shop
 export const ShopContext = createContext();
 
-// Mock default cart function
-const getDefaultCart = () => {
-  // Returns an empty cart with 0 quantity for each product (adjust as needed)
-  return {};
-};
-
-export const ShopProvider = ({ children }) => {
-  const [cartItems, setCartItems] = useState(getDefaultCart());
+const ShopContextProvider = ({ children }) => {
+  const [cartItems, setCartItems] = useState({});
   const [allProduct, setAllProduct] = useState([]);
-  
-  // Function to fetch the total cart amount
-  const getTotalCartAmount = () => {
-    return allProduct.reduce((acc, product) => {
-      const quantity = cartItems[product.id] || 0;
-      return acc + product.new_price * quantity;
-    }, 0);
-  };
 
-  // Fetch products and cart items after component mounts
   useEffect(() => {
-    // Fetch all products
-    fetch('https://e-commerce-react-xp0f.onrender.com/all-products')
-      .then((response) => response.json())
-      .then((data) => setAllProduct(data))
-      .catch((error) => console.error('Error fetching products:', error));
-    
-    // Fetch user cart items
-    const fetchCartData = () => {
-      fetch('https://e-commerce-react-xp0f.onrender.com/getcart', {
-        method: 'POST',
-        headers: {
-          'Accept': 'application/json',
-          'auth-token': `${localStorage.getItem('auth-token')}`, // Corrected format
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({}),
-      })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error(`Error: ${response.statusText}`);
-        }
-        return response.json();
-      })
-      .then((data) => {
-        console.log('Fetched Cart:', data);
-        setCartItems(data); // Assumes 'data' is a cart object in the form of { productId: quantity }
-      })
-      .catch((error) => console.error('Failed to fetch cart data:', error));
-    };
-
-    // Fetch cart data on mount if token exists
-    if (localStorage.getItem('auth-token')) {
-      fetchCartData();
-    }
+    const savedCart = JSON.parse(localStorage.getItem('cartItems')) || {};
+    setCartItems(savedCart);
   }, []);
 
-  // Function to remove item from cart
+  useEffect(() => {
+    localStorage.setItem('cartItems', JSON.stringify(cartItems));
+  }, [cartItems]);
+
+  const addToCart = (productId) => {
+    setCartItems((prevItems) => ({
+      ...prevItems,
+      [productId]: (prevItems[productId] || 0) + 1,
+    }));
+  };
+
   const removeFromCart = (productId) => {
     setCartItems((prevItems) => {
-      const updatedCart = { ...prevItems };
-      delete updatedCart[productId];
-      return updatedCart;
+      const updatedItems = { ...prevItems };
+      if (updatedItems[productId] > 1) {
+        updatedItems[productId] -= 1;
+      } else {
+        delete updatedItems[productId];
+      }
+      return updatedItems;
     });
-    // Consider adding a fetch call to sync this with the backend
+  };
+
+  const getTotalCartAmount = () => {
+    return Object.keys(cartItems).reduce((total, itemId) => {
+      const item = allProduct.find((product) => product.id === parseInt(itemId));
+      return total + (item ? item.new_price * cartItems[itemId] : 0);
+    }, 0);
   };
 
   return (
     <ShopContext.Provider
       value={{
         cartItems,
-        allProduct,
-        getTotalCartAmount,
+        setCartItems,
+        addToCart,
         removeFromCart,
+        getTotalCartAmount,
+        allProduct,
+        setAllProduct,
       }}
     >
       {children}
     </ShopContext.Provider>
   );
 };
+
+export default ShopContextProvider;
