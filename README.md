@@ -19,11 +19,8 @@ This project is a fully functional e-commerce platform built with React.js. It e
 
 ## Features
 - User Authentication: Sign up, login, logout
-- Product Browsing: View categories, product details
-- Shopping Cart: Add/remove products, view cart, checkout
-- Admin Panel: Manage products, categories, orders (if applicable)
+- Admin Panel: Manage products, categories, orders (Add/remove products, view cart)
 - Responsive Design: Mobile and desktop-friendly
-- State Management: Utilizing React hooks and context API or Redux
 - API Integration: Connects with backend services for data fetching
 
 ---
