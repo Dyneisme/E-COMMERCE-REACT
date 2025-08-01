@@ -1,4 +1,4 @@
-# E-Commerce React Application
+# User React Application
 
 ## Table of Contents
 - [Introduction](#introduction)
