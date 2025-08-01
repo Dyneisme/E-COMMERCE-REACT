@@ -26,7 +26,7 @@ This project is a fully functional e-commerce platform built with React.js. It e
 ---
 
 ## Tech Stack
-- React.js
+- React.js MERN
 - JavaScript (ES6+)
 - CSS3 / SCSS
 - React Router for client-side routing
