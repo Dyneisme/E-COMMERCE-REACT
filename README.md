@@ -24,6 +24,9 @@ This project is a fully functional e-commerce platform built with React.js. It e
 - API Integration: Connects with backend services for data fetching
 
 ---
+Live Site admin: [https://mern-ecommerce-webapp-admin.onrender.com]
+
+Live Site frontend: [https://mern-ecommerce-webapp-front-end.onrender.com]
 
 ## Tech Stack
 - React.js MERN
